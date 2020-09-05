@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+  php:
+    build:
+      context: ./
+      target: dev
+    volumes: ['./:/app:cached']
+    environment:
+      - PHP_IDE_CONFIG="serverName={{ IDE_SERVERNAME }}"
+  nginx:
+    image: {{ NGINX_FROM }}:{{ NGINX_VERSION }}
+    environment:
+      - PHP_FPM_HOST=php
+      - PHP_FPM_PORT=9000
+    ports: ["${LOCAL_HTTP_PORT-8080}:8080"]
+    volumes: ['./public:/app/public:cached']

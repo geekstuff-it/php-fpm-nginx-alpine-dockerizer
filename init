@@ -1,0 +1,8 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types = 1);
+use GeekStuff\Dockerizer as Dockerizer;
+require_once __DIR__.'/vendor/autoload.php';
+Dockerizer\Base\Bootstrap::start(__DIR__);
+/** @noinspection PhpUnhandledExceptionInspection */
+exit(Dockerizer\Base\Script::start(__FILE__, Dockerizer\Command\Init::class));

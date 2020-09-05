@@ -1,0 +1,130 @@
+ARG PHP_GEEKSTUFF_VERSION={{ FPM_VERSION }}
+ARG NGINX_VERSION={{ NGINX_VERSION }}
+
+##############
+# BASE       #
+##############
+FROM {{ FPM_FROM }}:${PHP_GEEKSTUFF_VERSION} AS base
+# Add things that needs to happen both in dev and prod stage
+
+
+##############
+# BUILDTOOLS #
+##############
+FROM base AS buildtools
+# Add things needed during both dev and build phase.
+#  Example: composer, npm, grunt, gulp, etc.
+
+# few basic tools
+ENV COMPOSER_VERSION={{ COMPOSER_VERSION }}
+RUN /scripts/install-buildtools
+
+
+##############
+# DEV        #
+##############
+FROM buildtools AS dev
+
+## Env
+ENV APP_ENV=dev \
+    PHP_IDE_CONFIG="serverName=php-docker-dev" \
+    PHP_XDEBUG_REMOTE_PORT=9000 \
+    TZ={{ TIMEZONE }}
+
+## Php ini
+RUN { \
+      echo "[PHP]"; \
+      echo "display_errors = 1"; \
+      echo "display_startup_errors = 1"; \
+      echo "error_reporting = E_ALL"; \
+      echo "expose_php = 1"; \
+      echo ""; \
+      echo "[xdebug]"; \
+      echo "xdebug.default_enable = 1"; \
+      echo "xdebug.remote_enable = 1"; \
+      echo "xdebug.remote_autostart = 0"; \
+      echo "xdebug.remote_connect_back = 1"; \
+      echo "xdebug.max_nesting_level = 9999"; \
+  } > "$PHP_INI_DIR/php.ini"
+#RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+
+## Install xdebug (TODO this should be using specific version (so does base apcu))
+RUN apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS \
+ && pecl install xdebug \
+ && docker-php-ext-enable xdebug \
+ && pecl clear-cache \
+ && apk del .build-dependencies
+
+## Switch to php user
+RUN create-php-user ${PHP_USER_ID}
+USER ${PHP_USER_NAME}
+
+
+##############
+# BUILD      #
+##############
+FROM buildtools AS build
+
+## ENV
+ENV APP_ENV=prod \
+    TZ={{ TIMEZONE }}
+
+## Create php user
+RUN create-php-user ${PHP_USER_ID} \
+ && rm -f /app/.empty
+
+## Copy code
+COPY --chown=${PHP_USER_NAME}:${PHP_USER_NAME} . /app
+
+## Init & Optimise Symfony app
+USER ${PHP_USER_NAME}
+RUN composer install --no-dev \
+ && bin/console cache:clear --env=prod \
+ && bin/console assets:install public \
+ && composer dump-env prod \
+ && composer dump-autoload --no-dev --classmap-authoritative
+
+
+##############
+# NGINX      #
+##############
+FROM {{ NGINX_FROM }}:${NGINX_VERSION} AS nginx
+
+WORKDIR /app
+
+## Copy some generated files from our build
+COPY --from=build --chown=nginx:nginx /app/public /app/public
+
+
+##############
+# PROD       #
+##############
+FROM base AS prod
+
+## Create php user
+RUN create-php-user ${PHP_USER_ID} \
+ && rm -f /app/.empty
+
+## Copy generated files from our build (and we could exclude some from public/)
+COPY --from=build --chown=${PHP_USER_NAME}:${PHP_USER_NAME}  /app .
+
+## ENV
+ENV APP_ENV=prod \
+    TZ={{ TIMEZONE }}
+
+## Php ini
+RUN { \
+      echo "[PHP]"; \
+      echo "display_errors = 0"; \
+      echo "display_startup_errors = 0"; \
+      echo "error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT"; \
+      echo "expose_php = 0"; \
+      echo ""; \
+      echo "[opcache]"; \
+      echo "opcache.preload = /app/var/cache/prod/App_KernelProdContainer.preload.php"; \
+      echo "opcache.validate_timestamps = 0"; \
+  } > "$PHP_INI_DIR/php.ini"
+#RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+## Switch to php user
+USER ${PHP_USER_NAME}

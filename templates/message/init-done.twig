@@ -1,0 +1,36 @@
+{%  if is_empty %}
+# This is a new project. Nice!
+{% else %}
+# Your /app folder already contains files. If needed most framework installers won't like initializing a project in such folder.
+{% endif %}
+
+{%  if not has_framework %}
+## Install a PHP framework, or not.
+Install any php framework, or none. You have a chance to use this php environment to run php installer.
+For now this is tailored to symfony but will adapt to more ways.
+
+Some tools and installers are already present in the box to help you get started.
+{% for app in apps %}
+  {{ app.name }}: {{ app.version }}
+{% endfor %}
+
+### Symfony installation example
+```
+/app$ symfony new --no-git .
+/app$ symfony new --full --no-git .
+/app$ symfony new --demo --no-git .
+```
+* The --no-git will make symfony skip auto creating a commit. Better to do that and other git operations
+  from your host computer which is more likely setup with your git identity already.
+{% endif %}
+
+{%  if not is_dockerized %}
+## Dockerize your app
+Once you have generated your framework files or a plain composer init, use `php-dockerize` to generate the few files
+needed to have a nice php environment for dev as well as a nice prod stage build, and docker-compose to simplify
+running php-fpm and nginx in both a mounted way and a fully copied code way, all kept lean.
+
+For now it is fixed to symfony, but we would like to add laravel, simple composer project, and framework-less apps too.
+
+See `php-dockerize --help`, otherwise the defaults are safe to go with and uses latest fixed versioning.
+{% endif %}

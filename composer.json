@@ -1,0 +1,24 @@
+{
+    "name": "geekstuff-it/docker-php-buildtools-alpine-dockerizer",
+    "description": "This repo helps dockerize a php project, for dev and packaged image into separate fpm nginx boxes.",
+    "autoload": {
+        "psr-4": {
+            "GeekStuff\\Dockerizer\\": "src/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "7.2.5"
+        }
+    },
+    "require": {
+        "php": ">= 7.2.5",
+        "ext-json": "*",
+        "symfony/console": "^5.1",
+        "symfony/finder": "^5.1",
+        "twig/twig": "^3.0",
+        "symfony/filesystem": "^5.1",
+        "symfony/http-client": "^5.1",
+        "symfony/process": "^5.1"
+    }
+}

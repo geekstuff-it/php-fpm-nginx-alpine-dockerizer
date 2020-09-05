@@ -1,0 +1,36 @@
+# Dockerize complete!
+
+You should now have a multi-stage multi-purpose Dockerfile, kept as lean as possible in every end stages,
+and 2 docker-compose configs.
+
+Some size numbers with this setup, on php 7.4.9, with `symfony new --demo --no-git .`, `php-dockerize` and
+`docker-compose -f docker-compose.prod-test.yml up --build`:
+php-fpm image: 171MB
+nginx image: 27.8MB
+
+These are the files that dockerize added:
+{% for file in FILE_LIST %}
+{{ file.getFilenameWithoutExtension }}
+{% endfor %}
+{{ NOTES_FILENAME }} (a copy of this "Dockerize complete" output)
+
+## Easy DEV
+`docker-compose up --build` and `docker-compose run php bash` should let you continue to build anything.
+
+## 2 Fully contained prod images for php-fpm and nginx, with start of less code duplication between php-fpm and nginx.
+`docker-compose -f docker-compose.prod-test.yml up --build` will build 2 self contained images for
+php-fpm and nginx, re-using the same build base after which we can separate what belongs in which image,
+automatically.
+
+## Kubernetes friendly
+Because we have 2 separate image that don't need to share a volume, they can scale independently. You can even use
+nginx controllers to reach out to php-fpm directly so you don't need the nginx box with your public/ folder content.
+
+A fully featured helm chart to go along is almost completed.
+
+## Want to use a different forwarded host port for http with docker-compose?
+`LOCAL_HTTP_PORT=12345 docker-compose up --build`
+
+## What's next?
+Now you are still in the buildtools init phase.
+Simply exit and start using docker-compose on your project!
