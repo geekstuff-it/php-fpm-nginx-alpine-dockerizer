@@ -286,7 +286,7 @@ abstract class Common extends Command
     {
         $tags = $this->getDockerHubTags(
             'geekstuffreal/php-fpm-alpine',
-            sprintf('%s.%s', PHP_MAJOR_VERSION, PHP_MINOR_VERSION)
+            sprintf('%s', PHP_VERSION)
         );
 
         return $tags ? array_shift($tags) : 'latest';
