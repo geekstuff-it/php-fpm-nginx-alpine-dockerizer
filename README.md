@@ -7,3 +7,7 @@ It's meant to be used with image geekstuffreal/php-fpm-alpine and the
 `php-init` script in it that will download this project and use it.
 
 To fully see how it's used, head over to https://github.com/geekstuff-it/docker-php-fpm-alpine
+
+## TODO
+- add laravel specifics
+- add other installers (silex?)
