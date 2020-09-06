@@ -131,12 +131,20 @@ class Dockerize extends Common
 
         $twig = $this->getTwig($this->getDockerizeTemplateDir());
         foreach ($this->getDockerizeTemplateFiles() as $templateFile) {
+            $template = $templateFile->getFilename();
+            if ($framework = $input->getOption('framework')) {
+                $frameworkVersion = sprintf('framework/%s/%s', $framework, $templateFile->getFilename());
+                if ($fs->exists($this->config->rootDir . '/templates/dockerizer/' . $frameworkVersion)) {
+                    $template = $frameworkVersion;
+                }
+            }
+
             $newFile = sprintf('/app/%s', $templateFile->getFilenameWithoutExtension());
             if ($fs->exists($newFile)) {
                 throw new Exception("Destination file already exists");
             }
 
-            $fs->dumpFile($newFile, $twig->render($templateFile->getFilename(), $params));
+            $fs->dumpFile($newFile, trim($twig->render($template, $params)).PHP_EOL);
         }
 
         return true;
