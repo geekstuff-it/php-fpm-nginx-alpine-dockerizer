@@ -55,12 +55,24 @@ class Dockerize extends Common
                 'Timezone to use',
                 'UTC'
             )
+            ->addOption(
+                'framework', null, InputOption::VALUE_REQUIRED,
+                'The framework templates to use. (will try to auto detect)'
+            )
         ;
     }
 
     protected function interact(InputInterface $input, OutputInterface $output): void
     {
         parent::interact($input, $output);
+
+        if (is_null($input->getOption('framework'))) {
+            $framework = $this->detectFramework();
+
+            if ($framework !== $this->data::FRAMEWORK_NONE) {
+                $input->setOption('framework', $framework);
+            }
+        }
     }
 
     /**
