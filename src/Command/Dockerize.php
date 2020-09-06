@@ -55,12 +55,24 @@ class Dockerize extends Common
                 'Timezone to use',
                 'UTC'
             )
+            ->addOption(
+                'framework', null, InputOption::VALUE_REQUIRED,
+                'The framework templates to use. (will try to auto detect)'
+            )
         ;
     }
 
     protected function interact(InputInterface $input, OutputInterface $output): void
     {
         parent::interact($input, $output);
+
+        if (is_null($input->getOption('framework'))) {
+            $framework = $this->detectFramework();
+
+            if ($framework !== $this->data::FRAMEWORK_NONE) {
+                $input->setOption('framework', $framework);
+            }
+        }
     }
 
     /**
@@ -115,16 +127,25 @@ class Dockerize extends Common
             'IDE_SERVERNAME' => $input->getOption('ide-servername'),
             'TIMEZONE' => $input->getOption('timezone'),
             'COMPOSER_VERSION' => $input->getOption('composer-version'),
+            'GENERATED_AT' => date(DATE_RFC850),
         ];
 
         $twig = $this->getTwig($this->getDockerizeTemplateDir());
         foreach ($this->getDockerizeTemplateFiles() as $templateFile) {
+            $template = $templateFile->getFilename();
+            if ($framework = $input->getOption('framework')) {
+                $frameworkVersion = sprintf('framework/%s/%s', $framework, $templateFile->getFilename());
+                if ($fs->exists($this->config->rootDir . '/templates/dockerizer/' . $frameworkVersion)) {
+                    $template = $frameworkVersion;
+                }
+            }
+
             $newFile = sprintf('/app/%s', $templateFile->getFilenameWithoutExtension());
             if ($fs->exists($newFile)) {
                 throw new Exception("Destination file already exists");
             }
 
-            $fs->dumpFile($newFile, $twig->render($templateFile->getFilename(), $params));
+            $fs->dumpFile($newFile, trim($twig->render($template, $params)).PHP_EOL);
         }
 
         return true;

@@ -149,7 +149,12 @@ abstract class Common extends Command
     {
         static $twigs = [];
         if (! isset($twigs[$templateDir])) {
-            $twigs[$templateDir] = new TwigEnvironment(new TwigFilesystemLoader($templateDir, $this->config->rootDir));
+            $twigs[$templateDir] = new TwigEnvironment(
+                new TwigFilesystemLoader($templateDir, $this->config->rootDir),
+                [
+                    'autoescape' => false,
+                ]
+            );
         }
 
         return $twigs[$templateDir];
@@ -162,7 +167,7 @@ abstract class Common extends Command
 
     protected function detectFramework(): string
     {
-        if (file_exists($this->config->rootDir.'/symfony.lock')) {
+        if (file_exists($this->config->appDir.'/symfony.lock')) {
             return $this->data::FRAMEWORK_SYMFONY;
         } else {
             return $this->data::FRAMEWORK_NONE;
@@ -191,6 +196,7 @@ abstract class Common extends Command
             $finder
                 ->ignoreDotFiles(false)
                 ->files()
+                ->depth("< 2")
                 ->in($this->getDockerizeTemplateDir());
 
             // check if there are any results
@@ -239,15 +245,9 @@ abstract class Common extends Command
 
         $apps['php'] = ['name' => 'php', 'version' => PHP_VERSION];
 
-        $matches = [];
-        if (preg_match('/Composer version (\d+(?:\.\d+)+).*/', $this->getComposerVersion(), $matches)) {
-            $apps['composer'] = ['name' => 'composer', 'version' => $matches[1]];
-        }
-
-        $matches = [];
-        if (preg_match('/Symfony CLI version v(\d+(?:\.\d+)+).*/', $this->getSymfonyVersion(), $matches)) {
-            $apps['symfony'] = ['name' => 'symfony cli', 'version' => $matches[1]];
-        }
+        $apps['composer'] = ['name' => 'composer', 'version' => $this->getComposerVersion()];
+        $apps['laravel'] = ['name' => 'laravel cli', 'version' => 'install with `install-laravel-cli`'];
+        $apps['symfony'] = ['name' => 'symfony cli', 'version' => 'install with `install-symfony-cli`'];
 
         return $apps;
     }
@@ -265,7 +265,7 @@ abstract class Common extends Command
     protected function getSymfonyVersion(): ?string
     {
         $matches = [];
-        if (preg_match('/Symfony CLI version v(\d+(?:\.\d+)+).*/', trim(shell_exec('symfony version --no-ansi')), $matches)) {
+        if (preg_match('/Symfony CLI version v(\d+(?:\.\d+)+).*/', trim(shell_exec('symfony version --no-ansi') ?: ''), $matches)) {
             return $matches[1];
         }
 

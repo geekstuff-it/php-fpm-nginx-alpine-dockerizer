@@ -1,0 +1,11 @@
+{% extends "Dockerfile.twig" %}
+
+{% block build_framework %}
+RUN composer install --no-dev \
+ && bin/console cache:clear --env=prod \
+ && bin/console assets:install public \
+ && composer dump-env prod \
+ && composer dump-autoload --no-dev --classmap-authoritative
+{% endblock %}
+
+{% block prod_opcache_preload %}opcache.preload = /app/var/cache/prod/App_KernelProdContainer.preload.php{% endblock %}

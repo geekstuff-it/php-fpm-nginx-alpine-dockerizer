@@ -11,6 +11,9 @@ class Config
     public $appVersion = 'alpha';
 
     /** @var string */
+    public $appDir = '/app';
+
+    /** @var string */
     public $rootDir;
 
     /** @var self */

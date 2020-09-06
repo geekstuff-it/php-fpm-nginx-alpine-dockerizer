@@ -1,3 +1,4 @@
+{% block content %}
 version: '3.7'
 services:
   php:
@@ -15,3 +16,4 @@ services:
     environment:
       - PHP_FPM_HOST=php
     ports: ["${LOCAL_HTTP_PORT-8080}:8080"]
+{% endblock %}

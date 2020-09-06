@@ -1,36 +1,25 @@
+# Init done. About to let you handle the rest!
 {%  if is_empty %}
-# This is a new project. Nice!
+Will drop to a shell to let you create a new php project and dockerize it.
 {% else %}
-# Your /app folder already contains files. If needed most framework installers won't like initializing a project in such folder.
+Will drop to a shell where you can dockerize your php app.
 {% endif %}
 
 {%  if not has_framework %}
-## Install a PHP framework, or not.
-Install any php framework, or none. You have a chance to use this php environment to run php installer.
-For now this is tailored to symfony but will adapt to more ways.
-
-Some tools and installers are already present in the box to help you get started.
+## Use php framework installers (if needed)
+Here are some versions of tools if installed, or the commands to install them.
 {% for app in apps %}
   {{ app.name }}: {{ app.version }}
 {% endfor %}
 
-### Symfony installation example
-```
-/app$ symfony new --no-git .
-/app$ symfony new --full --no-git .
-/app$ symfony new --demo --no-git .
-```
-* The --no-git will make symfony skip auto creating a commit. Better to do that and other git operations
-  from your host computer which is more likely setup with your git identity already.
+Tips:
+  - if running `symfony new`, use --no-git to avoid having to setup your git identity in this disposable "init" docker run.
 {% endif %}
 
-{%  if not is_dockerized %}
-## Dockerize your app
-Once you have generated your framework files or a plain composer init, use `php-dockerize` to generate the few files
-needed to have a nice php environment for dev as well as a nice prod stage build, and docker-compose to simplify
-running php-fpm and nginx in both a mounted way and a fully copied code way, all kept lean.
+## Dockerize your app!
+Latest dockerizer just got installed. (https://github.com/geekstuff-it/php-fpm-nginx-alpine-dockerizer)
 
-For now it is fixed to symfony, but we would like to add laravel, simple composer project, and framework-less apps too.
+This tool will create a few files if they don't exist, that will dockerize your php app into a php-fpm box and
+an nginx box, both fully self-contained and as lean as possible, while also giving you a dev build with xdebug and more.
 
-See `php-dockerize --help`, otherwise the defaults are safe to go with and uses latest fixed versioning.
-{% endif %}
+`php-dockerize` (use --help for options)

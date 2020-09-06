@@ -90,6 +90,11 @@ class Init extends Common
         if (! $process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
+
+        // change PS1
+        $fp = fopen(sprintf('/home/%s/.profile', getenv('PHP_USER_NAME')), 'a');
+        fwrite($fp, 'export PS1="(init) \h:\w\$ "');
+        fclose($fp);
     }
 
     /**
@@ -113,6 +118,6 @@ class Init extends Common
     {
         $output->writeln('# Starting shell as php user.');
         $output->writeln('');
-        pcntl_exec('/bin/su', [getenv('PHP_USER_NAME')]);
+        pcntl_exec('/bin/su', ['-l', '-c', 'cd /app; bash --login -i', getenv('PHP_USER_NAME')]);
     }
 }

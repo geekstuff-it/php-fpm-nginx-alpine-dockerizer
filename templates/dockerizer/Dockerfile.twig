@@ -4,27 +4,35 @@ ARG NGINX_VERSION={{ NGINX_VERSION }}
 ##############
 # BASE       #
 ##############
+# things that needs to happen both in dev and prod stage
 FROM {{ FPM_FROM }}:${PHP_GEEKSTUFF_VERSION} AS base
-# Add things that needs to happen both in dev and prod stage
 
+{% block base %}
+{% block base_extras %}{% endblock %}
+{% endblock %}
 
 ##############
 # BUILDTOOLS #
 ##############
-FROM base AS buildtools
-# Add things needed during both dev and build phase.
+# things needed during both dev and build phase.
 #  Example: composer, npm, grunt, gulp, etc.
+FROM base AS buildtools
 
+{% block buildtools %}
 # few basic tools
 ENV COMPOSER_VERSION={{ COMPOSER_VERSION }}
 RUN /scripts/install-buildtools
 
+{% block buildtools_extras %}{% endblock %}
+{% endblock %}
 
 ##############
 # DEV        #
 ##############
 FROM buildtools AS dev
 
+{% block dev %}
+{% block dev_ini_xdebug %}
 ## Env
 ENV APP_ENV=dev \
     PHP_IDE_CONFIG="serverName=php-docker-dev" \
@@ -54,20 +62,30 @@ RUN apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS \
  && docker-php-ext-enable xdebug \
  && pecl clear-cache \
  && apk del .build-dependencies
+{% endblock %}
 
-## Switch to php user
-RUN create-php-user ${PHP_USER_ID}
+## Create php user, specify stage in PS1 prompt
+RUN create-php-user ${PHP_USER_ID} \
+ && echo 'export PS1="(dev) \h:\w\$ "' >> /home/${PHP_USER_NAME}/.bashrc
+
+# Switch to user
 USER ${PHP_USER_NAME}
 
+{% block dev_extras %}{% endblock %}
+{% endblock %}
 
 ##############
 # BUILD      #
 ##############
 FROM buildtools AS build
 
+{% block build %}
 ## ENV
+{% block build_env %}
 ENV APP_ENV=prod \
     TZ={{ TIMEZONE }}
+{% block build_env_extras %}{% endblock %}
+{% endblock %}
 
 ## Create php user
 RUN create-php-user ${PHP_USER_ID} \
@@ -76,43 +94,53 @@ RUN create-php-user ${PHP_USER_ID} \
 ## Copy code
 COPY --chown=${PHP_USER_NAME}:${PHP_USER_NAME} . /app
 
-## Init & Optimise Symfony app
+## Init & Optimise app
 USER ${PHP_USER_NAME}
-RUN composer install --no-dev \
- && bin/console cache:clear --env=prod \
- && bin/console assets:install public \
- && composer dump-env prod \
- && composer dump-autoload --no-dev --classmap-authoritative
+{% block build_framework %}
+RUN composer install --no-dev
+{% endblock %}
 
+{% block build_extras %}{% endblock %}
+{% endblock %}
 
 ##############
 # NGINX      #
 ##############
 FROM {{ NGINX_FROM }}:${NGINX_VERSION} AS nginx
 
+{% block nginx %}
 WORKDIR /app
 
 ## Copy some generated files from our build
 COPY --from=build --chown=nginx:nginx /app/public /app/public
 
+{% block nginx_extras %}{% endblock %}
+{% endblock %}
 
 ##############
 # PROD       #
 ##############
 FROM base AS prod
 
+{% block prod %}
 ## Create php user
 RUN create-php-user ${PHP_USER_ID} \
  && rm -f /app/.empty
 
-## Copy generated files from our build (and we could exclude some from public/)
+## Copy generated files from our build
+{% block prod_copy %}
 COPY --from=build --chown=${PHP_USER_NAME}:${PHP_USER_NAME}  /app .
+{% endblock %}
 
 ## ENV
+{% block prod_env %}
 ENV APP_ENV=prod \
     TZ={{ TIMEZONE }}
+{% block prod_env_extras %}{% endblock %}
+{% endblock %}
 
 ## Php ini
+{% block prod_ini %}
 RUN { \
       echo "[PHP]"; \
       echo "display_errors = 0"; \
@@ -121,10 +149,16 @@ RUN { \
       echo "expose_php = 0"; \
       echo ""; \
       echo "[opcache]"; \
-      echo "opcache.preload = /app/var/cache/prod/App_KernelProdContainer.preload.php"; \
+      echo "{% block prod_opcache_preload %}{% endblock %}"; \
       echo "opcache.validate_timestamps = 0"; \
   } > "$PHP_INI_DIR/php.ini"
 #RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+{% block prod_ini_extras %}{% endblock %}
+{% endblock %}
 
 ## Switch to php user
 USER ${PHP_USER_NAME}
+{% endblock %}
+
+
+# Generated {{ GENERATED_AT }} by [Dockerizer](https://github.com/geekstuff-it/php-fpm-nginx-alpine-dockerizer)
