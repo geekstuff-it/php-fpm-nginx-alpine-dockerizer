@@ -127,6 +127,7 @@ class Dockerize extends Common
             'IDE_SERVERNAME' => $input->getOption('ide-servername'),
             'TIMEZONE' => $input->getOption('timezone'),
             'COMPOSER_VERSION' => $input->getOption('composer-version'),
+            'GENERATED_AT' => date(DATE_RFC850),
         ];
 
         $twig = $this->getTwig($this->getDockerizeTemplateDir());
