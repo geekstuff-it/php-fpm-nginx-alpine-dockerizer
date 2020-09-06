@@ -196,6 +196,7 @@ abstract class Common extends Command
             $finder
                 ->ignoreDotFiles(false)
                 ->files()
+                ->depth("< 2")
                 ->in($this->getDockerizeTemplateDir());
 
             // check if there are any results
