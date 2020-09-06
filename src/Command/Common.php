@@ -149,7 +149,12 @@ abstract class Common extends Command
     {
         static $twigs = [];
         if (! isset($twigs[$templateDir])) {
-            $twigs[$templateDir] = new TwigEnvironment(new TwigFilesystemLoader($templateDir, $this->config->rootDir));
+            $twigs[$templateDir] = new TwigEnvironment(
+                new TwigFilesystemLoader($templateDir, $this->config->rootDir),
+                [
+                    'autoescape' => false,
+                ]
+            );
         }
 
         return $twigs[$templateDir];
