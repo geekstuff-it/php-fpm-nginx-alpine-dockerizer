@@ -54,9 +54,11 @@ RUN apk add --update --no-cache --virtual .build-dependencies $PHPIZE_DEPS \
  && docker-php-ext-enable xdebug \
  && pecl clear-cache \
  && apk del .build-dependencies
+## Create php user, specify stage in PS1 prompt
+RUN create-php-user ${PHP_USER_ID} \
+ && echo 'export PS1="(dev) \h:\w\$ "' >> /home/${PHP_USER_NAME}/.bashrc
 
-## Switch to php user
-RUN create-php-user ${PHP_USER_ID}
+# Switch to user
 USER ${PHP_USER_NAME}
 
 
