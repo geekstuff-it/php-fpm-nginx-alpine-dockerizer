@@ -167,7 +167,7 @@ abstract class Common extends Command
 
     protected function detectFramework(): string
     {
-        if (file_exists($this->config->rootDir.'/symfony.lock')) {
+        if (file_exists($this->config->appDir.'/symfony.lock')) {
             return $this->data::FRAMEWORK_SYMFONY;
         } else {
             return $this->data::FRAMEWORK_NONE;
