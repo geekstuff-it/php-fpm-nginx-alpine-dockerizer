@@ -12,4 +12,3 @@ To fully see how it's used, head over to https://github.com/geekstuff-it/docker-
 - fix issue where new project got latest tag for php-fpm
 - add env var in base nginx box to let us control the timeouts differently in dev and prod.  
   (in dev, we will put a long timeout to avoid nginx getting in the way with xdebug)
-- add laravel specifics
