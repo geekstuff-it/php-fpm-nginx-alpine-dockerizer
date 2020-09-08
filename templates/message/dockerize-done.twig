@@ -2,13 +2,6 @@
 #### Dockerize complete!
 You now have a multi-stage, multi-purpose Dockerfile, kept as lean as possible in every end stages, and 2 docker-compose configs.
 
-## Details
-These are the files that dockerize added:
-{% for file in FILE_LIST %}
-  {{ file.getFilenameWithoutExtension }}
-{% endfor %}
-  {{ NOTES_FILENAME }} (a copy of this "Dockerize complete" output)
-
 ## Easy DEV
 `docker-compose up --build` and `docker-compose run php bash` should let you continue to build and run anything.
 
@@ -25,3 +18,4 @@ Because we have 2 separate image that don't need to share a volume in between th
 
 ## What's next?
 Now you might still be in the init phase. Simply exit and start using docker-compose on your project!
+(and these notes above have been written to {{ NOTES_FILENAME }})

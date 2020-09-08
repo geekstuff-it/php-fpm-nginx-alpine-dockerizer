@@ -137,6 +137,13 @@ class Dockerize extends Common
                 $frameworkVersion = sprintf('framework/%s/%s', $framework, $templateFile->getFilename());
                 if ($fs->exists($this->config->rootDir . '/templates/dockerizer/' . $frameworkVersion)) {
                     $template = $frameworkVersion;
+                    $output->writeln(sprintf(
+                        '- with %s specifics, [%s]',
+                        ucfirst($framework),
+                        $templateFile->getFilenameWithoutExtension()
+                    ));
+                } else {
+                    $output->writeln(sprintf('- [%s]', $templateFile->getFilenameWithoutExtension()));
                 }
             }
 
@@ -163,7 +170,6 @@ class Dockerize extends Common
         $message = $this->getTwig($this->getOtherTemplateDir())->render(
             'dockerize-done.twig',
             [
-                'FILE_LIST' => $this->getDockerizeTemplateFiles(),
                 'NOTES_FILENAME' => $notesFileBasename
             ]
         );
