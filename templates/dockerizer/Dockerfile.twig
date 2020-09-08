@@ -8,6 +8,11 @@ ARG NGINX_VERSION={{ NGINX_VERSION }}
 FROM {{ FPM_FROM }}:${PHP_GEEKSTUFF_VERSION} AS base
 
 {% block base %}
+RUN docker-php-ext-install \
+    mysqli \
+    pdo_mysql \
+ && docker-php-source delete
+
 {% block base_extras %}{% endblock %}
 {% endblock %}
 
