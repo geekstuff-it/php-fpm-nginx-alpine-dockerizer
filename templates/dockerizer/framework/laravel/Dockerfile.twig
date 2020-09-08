@@ -1,0 +1,24 @@
+{% extends "Dockerfile.twig" %}
+
+{% block buildtools_extras %}
+# npm
+RUN apk add --update --no-cache \
+    nodejs \
+    npm \
+    yarn
+{% endblock %}
+
+{% block build_framework %}
+RUN composer install --no-dev --optimize-autoloader \
+ && php artisan config:cache \
+ && php artisan view:cache \
+ && php artisan event:cache \
+ && php artisan storage:link
+
+RUN yarn
+
+# RUN npm run prod
+# && php artisan route:cache \
+# && composer dump-env prod \
+# && composer dump-autoload --no-dev --classmap-authoritative
+{% endblock %}

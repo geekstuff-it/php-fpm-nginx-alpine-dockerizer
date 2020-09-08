@@ -8,6 +8,11 @@ ARG NGINX_VERSION={{ NGINX_VERSION }}
 FROM {{ FPM_FROM }}:${PHP_GEEKSTUFF_VERSION} AS base
 
 {% block base %}
+RUN docker-php-ext-install \
+    mysqli \
+    pdo_mysql \
+ && docker-php-source delete
+
 {% block base_extras %}{% endblock %}
 {% endblock %}
 
@@ -94,8 +99,10 @@ RUN create-php-user ${PHP_USER_ID} \
 ## Copy code
 COPY --chown=${PHP_USER_NAME}:${PHP_USER_NAME} . /app
 
-## Init & Optimise app
+## Switch to user
 USER ${PHP_USER_NAME}
+
+## Build and optimise app
 {% block build_framework %}
 RUN composer install --no-dev
 {% endblock %}

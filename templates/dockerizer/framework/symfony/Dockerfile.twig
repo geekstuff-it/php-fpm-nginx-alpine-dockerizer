@@ -1,8 +1,9 @@
 {% extends "Dockerfile.twig" %}
 
 {% block build_framework %}
-RUN composer install --no-dev \
+RUN composer install --no-dev --optimize-autoloader \
  && bin/console cache:clear --env=prod \
+ && bin/console cache:warmup --env=prod \
  && bin/console assets:install public \
  && composer dump-env prod \
  && composer dump-autoload --no-dev --classmap-authoritative

@@ -10,6 +10,7 @@ use Generator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpClient\HttpClient;
@@ -167,10 +168,14 @@ abstract class Common extends Command
 
     protected function detectFramework(): string
     {
-        if (file_exists($this->config->appDir.'/symfony.lock')) {
-            return $this->data::FRAMEWORK_SYMFONY;
-        } else {
-            return $this->data::FRAMEWORK_NONE;
+        $fs = new Filesystem();
+        switch (true) {
+            case $fs->exists($this->config->appDir.'/symfony.lock'):
+                return $this->data::FRAMEWORK_SYMFONY;
+            case $fs->exists($this->config->appDir.'/artisan'):
+                return $this->data::FRAMEWORK_LARAVEL;
+            default:
+                return $this->data::FRAMEWORK_NONE;
         }
     }
 
