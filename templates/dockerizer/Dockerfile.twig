@@ -94,8 +94,10 @@ RUN create-php-user ${PHP_USER_ID} \
 ## Copy code
 COPY --chown=${PHP_USER_NAME}:${PHP_USER_NAME} . /app
 
-## Init & Optimise app
+## Switch to user
 USER ${PHP_USER_NAME}
+
+## Build and optimise app
 {% block build_framework %}
 RUN composer install --no-dev
 {% endblock %}
